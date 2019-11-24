@@ -23,7 +23,7 @@ pub fn spawn() -> Receiver<u8> {
       stdout.lock().flush().unwrap();
       reader.read_exact(&mut buffer).unwrap();
       let key: u8 = buffer[0];
-      println!("{}", key);
+      // println!("{}", key);
       tx.send(key).unwrap();
     });
 

@@ -2,7 +2,7 @@ use std::thread;
 use std::io;
 use std::io::{Read, Write};
 
-const GRAD_RATIO: f32 = 0.01;
+const GRAD_RATIO: f32 = 0.007;
 
 pub struct SinWave {
     frequency: f32,
@@ -49,11 +49,17 @@ impl Wave for SinWave {
     fn next(&mut self) -> f32 {
         if self.frequency != self.intended {
             if self.frequency > self.intended {
-                // println!("{} > {}", self.frequency, self.intended);
-                self.frequency -= GRAD_RATIO;
+                if GRAD_RATIO < (self.frequency - self.intended) {
+                    self.frequency -= GRAD_RATIO;
+                } else {
+                    self.frequency = self.intended
+                }
             } else {
-                // println!("{} < {}", self.frequency, self.intended);
-                self.frequency += GRAD_RATIO;
+                if GRAD_RATIO < (self.intended - self.frequency) {
+                    self.frequency += GRAD_RATIO;
+                } else {
+                    self.frequency = self.intended
+                }
             }
         }
 
