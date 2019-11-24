@@ -1,5 +1,6 @@
 extern crate anyhow;
 extern crate cpal;
+extern crate parking_lot;
 
 mod config;
 mod stdin;
@@ -7,7 +8,7 @@ mod wave;
 
 use wave::{Wave, SinWave};
 
-use std::sync::Mutex;
+use parking_lot::Mutex;
 
 use anyhow::anyhow;
 use cpal::traits::{DeviceTrait, EventLoopTrait, HostTrait};
@@ -44,27 +45,13 @@ fn main() -> Result<(), anyhow::Error> {
     }
   };
 
-  let sample_rate = format.sample_rate.0 as f32;
-
+  let sample_rate = format.sample_rate.0 as f64;
+  
   let wave: Mutex<SinWave> = Mutex::new(SinWave::new(0.0, sample_rate));
 
   let stdin_ch = stdin::spawn();
 
   event_loop.run(move |id, result| {
-    let key: Option<u8> = match stdin_ch.try_recv() {
-      Ok(key)                         => Some(key),
-      Err(TryRecvError::Empty)        => None,
-      Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
-    };
-
-    if key.is_some() {
-      let freq = configs.keymappings.get(&key.unwrap());
-      if freq.is_some() {
-        let mut wave = wave.lock().expect("Could not lock wave");
-        wave.set_frequency(*freq.unwrap());
-      }
-    }
-
     let data = match result {
       Ok(data) => data,
       Err(err) => {
@@ -77,9 +64,9 @@ fn main() -> Result<(), anyhow::Error> {
       cpal::StreamData::Output {
         buffer: cpal::UnknownTypeOutputBuffer::U16(mut buffer),
       } => {
-        let mut wave = wave.lock().expect("Could not lock wave");
+        let mut wave = wave.lock();
         for sample in buffer.chunks_mut(format.channels as usize) {
-          let value = ((wave.next() * 0.5 + 0.5) * std::u16::MAX as f32) as u16;
+          let value = ((wave.next() * 0.5 + 0.5) * std::u16::MAX as f64) as u16;
           for out in sample.iter_mut() {
             *out = value;
           }
@@ -88,9 +75,9 @@ fn main() -> Result<(), anyhow::Error> {
       cpal::StreamData::Output {
         buffer: cpal::UnknownTypeOutputBuffer::I16(mut buffer),
       } => {
-        let mut wave = wave.lock().expect("Could not lock wave");
+        let mut wave = wave.lock();
         for sample in buffer.chunks_mut(format.channels as usize) {
-          let value = (wave.next() * std::i16::MAX as f32) as i16;
+          let value = (wave.next() * std::i16::MAX as f64) as i16;
           for out in sample.iter_mut() {
             *out = value;
           }
@@ -99,14 +86,28 @@ fn main() -> Result<(), anyhow::Error> {
       cpal::StreamData::Output {
         buffer: cpal::UnknownTypeOutputBuffer::F32(mut buffer),
       } => {
-        let mut wave = wave.lock().expect("Could not lock wave");
+        let mut wave = wave.lock();
         for sample in buffer.chunks_mut(format.channels as usize) {
           for out in sample.iter_mut() {
-            *out = wave.next();
+            *out = wave.next() as f32;
           }
         }
       }
       _ => (),
+    }
+
+    let key: Option<u8> = match stdin_ch.try_recv() {
+      Ok(key)                         => Some(key),
+      Err(TryRecvError::Empty)        => None,
+      Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
+    };
+
+    if key.is_some() {
+      let freq = configs.keymappings.get(&key.unwrap());
+      if freq.is_some() {
+        let mut wave = wave.lock();
+        wave.prog_frequency(*freq.unwrap(), configs.frequency_delta_ratio);
+      }
     }
   });
 }

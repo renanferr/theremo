@@ -8,11 +8,13 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RawConfig {
-    keymappings: Vec<f32>,
+    keymappings: Vec<f64>,
+    frequency_delta_ratio: f64
 }
 
 pub struct TheremoConfig {
-    pub keymappings: HashMap<u8, f32>,
+    pub keymappings: HashMap<u8, f64>,
+    pub frequency_delta_ratio: f64,
 }
 
 const CONFIG_FILE_PATH: &str = "./theremo.yaml";
@@ -31,7 +33,7 @@ pub fn init() -> TheremoConfig {
 
     let configs: RawConfig = serde_yaml::from_str(&content).unwrap();
 
-    let mut notes: HashMap<u8, f32> = HashMap::new();
+    let mut notes: HashMap<u8, f64> = HashMap::new();
     let keys: [u8; 9] = [
         97,     // a
         115,    // s
@@ -50,6 +52,7 @@ pub fn init() -> TheremoConfig {
 
     TheremoConfig {
         keymappings: notes,
+        frequency_delta_ratio: configs.frequency_delta_ratio,
     }
 }
 
@@ -95,5 +98,5 @@ pub fn init() -> TheremoConfig {
 // #[derive(Debug, PartialEq)]
 // pub struct KeyNote {
 //     pub key: u8,
-//     pub frequency: f32,
+//     pub frequency: f64,
 // }

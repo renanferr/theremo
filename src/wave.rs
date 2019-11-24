@@ -1,72 +1,61 @@
-use std::thread;
-use std::io;
-use std::io::{Read, Write};
-
-const GRAD_RATIO: f32 = 0.007;
-
 pub struct SinWave {
-    frequency: f32,
-    intended: f32,
-    phase: f32,
-    sample_rate: f32,
-    clock: f32,
+    frequency: f64,
+    target_freq: f64,
+    phase: f64,
+    sample_rate: f64,
+    clock: f64,
+    delta_freq: f64,
 }
 
 pub trait Wave {
-    fn new(frequency: f32, sample_rate: f32) -> Self;
-    fn next(&mut self) -> f32;
-    fn set_frequency(&mut self, frequency: f32);
+    fn new(frequency: f64, sample_rate: f64) -> Self;
+    fn next(&mut self) -> f64;
+    fn prog_frequency(&mut self, frequency: f64, frequency_delta_ratio: f64);
 }
 
 impl Default for SinWave {
     fn default() -> SinWave {
         SinWave {
             frequency: 0.0,
-            intended: 0.0,
+            target_freq: 0.0,
             phase: 0.0,
             clock: 0.0,
             sample_rate: 0.0,
+            delta_freq: 0.0,
         }
     }
 }
 
 impl Wave for SinWave {
-    fn new(frequency: f32, sample_rate: f32) -> SinWave {
+    fn new(frequency: f64, sample_rate: f64) -> SinWave {
         SinWave {
             frequency: frequency,
             sample_rate: sample_rate,
-            intended: frequency,
+            target_freq: frequency,
             phase: 0.0,
             clock: 0.0,
+            delta_freq: 0.0,
         }
     }
 
-    fn set_frequency(&mut self, frequency: f32) {
+    fn prog_frequency(&mut self, frequency: f64, frequency_delta_ratio: f64) {
         self.phase = 0.0;
-        self.intended = frequency;
+        self.target_freq = frequency;
+        self.delta_freq = (self.target_freq - self.frequency) * frequency_delta_ratio;
     }
 
-    fn next(&mut self) -> f32 {
-        if self.frequency != self.intended {
-            if self.frequency > self.intended {
-                if GRAD_RATIO < (self.frequency - self.intended) {
-                    self.frequency -= GRAD_RATIO;
-                } else {
-                    self.frequency = self.intended
-                }
-            } else {
-                if GRAD_RATIO < (self.intended - self.frequency) {
-                    self.frequency += GRAD_RATIO;
-                } else {
-                    self.frequency = self.intended
-                }
-            }
+    fn next(&mut self) -> f64 {
+        if self.frequency != self.target_freq {
+            self.frequency = match self.delta_freq.abs() > (self.target_freq - self.frequency).abs() {
+                true => self.target_freq,
+                false => self.frequency + self.delta_freq,
+            };
         }
 
-        let delta: f32 = 2.0 * std::f32::consts::PI * self.frequency / self.sample_rate;
+        let phase_delta: f64 = 2.0 * std::f64::consts::PI * self.frequency / self.sample_rate;
         self.clock = (self.clock + 1.0) % self.sample_rate;
         let next = self.phase.sin();
-        self.phase += delta;
+        self.phase += phase_delta;
         next
     }
 }
