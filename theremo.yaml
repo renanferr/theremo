@@ -1,4 +1,17 @@
-keymappings:
+frequency_delta_ratio: 0.00007
+keys:
+  - "A"
+  - "a"
+  - "s"
+  - "d"
+  - "f"
+  - "g"
+  - "h"
+  - "j"
+  - "k"
+  - "l"
+frequencies:
+  - 880.63
   - 261.63
   - 293.66
   - 329.63
@@ -8,4 +21,3 @@ keymappings:
   - 493.88
   - 523.25
   - 587.33
-frequency_delta_ratio: 0.00007

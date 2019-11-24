@@ -8,7 +8,8 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RawConfig {
-    keymappings: Vec<f64>,
+    frequencies: Vec<f64>,
+    keys: Vec<char>,
     frequency_delta_ratio: f64
 }
 
@@ -34,69 +35,19 @@ pub fn init() -> TheremoConfig {
     let configs: RawConfig = serde_yaml::from_str(&content).unwrap();
 
     let mut notes: HashMap<u8, f64> = HashMap::new();
-    let keys: [u8; 9] = [
-        97,     // a
-        115,    // s
-        100,    // d
-        102,    // f
-        103,    // g
-        104,    // h
-        106,    // j
-        107,    // k
-        108,    // l
-    ];
+    let keys: Vec<u8> = configs.keys.into_iter().map(|x| x as u8).collect();
+    let frequencies: Vec<f64> = configs.frequencies;
 
-    for (i, frequency) in configs.keymappings.iter().enumerate() {
-        notes.insert(keys[i], *frequency);
+    if keys.len() != frequencies.len() {
+        panic!("Mismatching keymappings lengths!");
     }
+
+    for i in 0..keys.len() {
+        notes.insert(keys[i], frequencies[i]);
+    }    
 
     TheremoConfig {
         keymappings: notes,
         frequency_delta_ratio: configs.frequency_delta_ratio,
     }
 }
-
-// pub const KEY_NOTES: [KeyNote; 9] = [
-//     KeyNote {
-//         key: 97,
-//         frequency: 261.63,
-//     },
-//     KeyNote {
-//         key: 115,
-//         frequency: 293.66,
-//     },
-//     KeyNote {
-//         key: 100,
-//         frequency: 329.63,
-//     },
-//     KeyNote {
-//         key: 102,
-//         frequency: 349.23,
-//     },
-//     KeyNote {
-//         key: 103,
-//         frequency: 392.0,
-//     },
-//     KeyNote {
-//         key: 104,
-//         frequency: 440.0,
-//     },
-//     KeyNote {
-//         key: 106,
-//         frequency: 493.88,
-//     },
-//     KeyNote {
-//         key: 107,
-//         frequency: 523.25,
-//     },
-//     KeyNote {
-//         key: 108,
-//         frequency: 587.33,
-//     },
-// ];
-
-// #[derive(Debug, PartialEq)]
-// pub struct KeyNote {
-//     pub key: u8,
-//     pub frequency: f64,
-// }
