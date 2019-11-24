@@ -10,12 +10,12 @@ use std::collections::HashMap;
 pub struct RawConfig {
     frequencies: Vec<f64>,
     keys: Vec<char>,
-    frequency_delta_ratio: f64
+    glide_ratio: f64
 }
 
 pub struct TheremoConfig {
     pub keymappings: HashMap<u8, f64>,
-    pub frequency_delta_ratio: f64,
+    pub glide_ratio: f64,
 }
 
 const CONFIG_FILE_PATH: &str = "./theremo.yaml";
@@ -48,6 +48,6 @@ pub fn init() -> TheremoConfig {
 
     TheremoConfig {
         keymappings: notes,
-        frequency_delta_ratio: configs.frequency_delta_ratio,
+        glide_ratio: configs.glide_ratio,
     }
 }

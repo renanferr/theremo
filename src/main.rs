@@ -106,7 +106,7 @@ fn main() -> Result<(), anyhow::Error> {
       let freq = configs.keymappings.get(&key.unwrap());
       if freq.is_some() {
         let mut wave = wave.lock();
-        wave.prog_frequency(*freq.unwrap(), configs.frequency_delta_ratio);
+        wave.prog_frequency(*freq.unwrap(), configs.glide_ratio);
       }
     }
   });
