@@ -61,7 +61,7 @@ fn main() -> Result<(), anyhow::Error> {
       let freq = configs.keymappings.get(&key.unwrap());
       if freq.is_some() {
         let mut wave = wave.lock().expect("Could not lock wave");
-        *wave = SinWave::new(*freq.unwrap(), sample_rate);
+        wave.set_frequency(*freq.unwrap());
       }
     }
 
