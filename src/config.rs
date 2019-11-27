@@ -12,8 +12,14 @@ use std::fs::File;
 pub struct RawConfig {
     notes: Vec<String>,
     keys: Vec<char>,
-    glide_ratio: f64,
+    glide: GlideOptions,
     notes_file: String,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct GlideOptions {
+    pub enabled: bool,
+    pub ratio: f64,
 }
 
 pub struct TheremoConfig {
@@ -36,7 +42,6 @@ fn read_notes_file(file_path: String) -> Result<HashMap<String, f64>, Box<dyn Er
         let frequency = record.get(2);
         if let (Some(note_name), Some(octave), Some(frequency)) = (note_name, octave, frequency) {
             let key = format!("{}{}", note_name, octave);
-            println!("{:?}", (note_name, octave, frequency));
             notes.insert(key, frequency.parse().unwrap());
         }
     }
@@ -96,9 +101,14 @@ pub fn init() -> TheremoConfig {
         // println!("{}", config_notes[i]);
     }
 
+    let glide_ratio = match configs.glide.enabled {
+        true => configs.glide.ratio,
+        false => 1.0,
+    };
+
     TheremoConfig {
-        keymappings: keymappings,
-        notes: notes,
-        glide_ratio: configs.glide_ratio,
+        keymappings,
+        notes,
+        glide_ratio,
     }
 }

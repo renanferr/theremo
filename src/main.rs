@@ -107,6 +107,7 @@ fn main() -> Result<(), anyhow::Error> {
       if note.is_some() {
         let freq = configs.notes.get(&note.unwrap().to_owned());
         if freq.is_some() {
+          println!("{:?}", note.unwrap());
           let mut wave = wave.lock();
           wave.set_frequency(*freq.unwrap(), configs.glide_ratio);
         }
