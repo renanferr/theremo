@@ -31,7 +31,6 @@ pub struct TheremoConfig {
 const CONFIG_FILE_PATH: &str = "./config.yaml";
 
 fn read_notes_file(file_path: String) -> Result<HashMap<String, f64>, Box<dyn Error>> {
-    // let file_path = get_first_arg()?;
     let file = File::open(file_path)?;
     let mut rdr = csv::Reader::from_reader(file);
     let mut notes: HashMap<String, f64> = HashMap::new();
@@ -41,6 +40,7 @@ fn read_notes_file(file_path: String) -> Result<HashMap<String, f64>, Box<dyn Er
         let octave = record.get(1);
         let frequency = record.get(2);
         if let (Some(note_name), Some(octave), Some(frequency)) = (note_name, octave, frequency) {
+            // TO DO: Add support for flat notes in CSV with a "/"
             let key = format!("{}{}", note_name, octave);
             notes.insert(key, frequency.parse().unwrap());
         }
@@ -77,16 +77,6 @@ pub fn init() -> TheremoConfig {
         }
     };
 
-    // let notes = notes.into_iter().map(|record| {
-        
-    // })
-
-    // if notes.is_ok() {
-    //     println!("{:?}", notes.unwrap());
-    // } else {
-    //     eprintln!("{:?}", notes.err())
-    // }
-
     let mut keymappings: HashMap<u8, String> = HashMap::new();
 
     let keys: Vec<u8> = configs.keys.into_iter().map(|x| x as u8).collect();
@@ -98,7 +88,6 @@ pub fn init() -> TheremoConfig {
 
     for i in 0..keys.len() {
         keymappings.insert(keys[i], config_notes[i].to_owned());
-        // println!("{}", config_notes[i]);
     }
 
     let glide_ratio = match configs.glide.enabled {
