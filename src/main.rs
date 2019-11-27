@@ -103,10 +103,13 @@ fn main() -> Result<(), anyhow::Error> {
     };
 
     if key.is_some() {
-      let freq = configs.keymappings.get(&key.unwrap());
-      if freq.is_some() {
-        let mut wave = wave.lock();
-        wave.prog_frequency(*freq.unwrap(), configs.glide_ratio);
+      let note = configs.keymappings.get(&key.unwrap());
+      if note.is_some() {
+        let freq = configs.notes.get(&note.unwrap().to_owned());
+        if freq.is_some() {
+          let mut wave = wave.lock();
+          wave.set_frequency(*freq.unwrap(), configs.glide_ratio);
+        }
       }
     }
   });

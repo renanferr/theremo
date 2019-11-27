@@ -10,7 +10,7 @@ pub struct SinWave {
 pub trait Wave {
     fn new(frequency: f64, sample_rate: f64) -> Self;
     fn next(&mut self) -> f64;
-    fn prog_frequency(&mut self, frequency: f64, glide_ratio: f64);
+    fn set_frequency(&mut self, frequency: f64, glide_ratio: f64);
 }
 
 impl Default for SinWave {
@@ -38,7 +38,7 @@ impl Wave for SinWave {
         }
     }
 
-    fn prog_frequency(&mut self, frequency: f64, glide_ratio: f64) {
+    fn set_frequency(&mut self, frequency: f64, glide_ratio: f64) {
         self.phase = 0.0;
         self.target_freq = frequency;
         self.delta_freq = (self.target_freq - self.frequency) * glide_ratio;
